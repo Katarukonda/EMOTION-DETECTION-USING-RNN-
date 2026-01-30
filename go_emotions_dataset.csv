@@ -1,0 +1,195 @@
+```python
+import pandas as pd
+
+# Load the dataset
+df = pd.read_csv('go_emotions_dataset.csv')
+
+# Get shape and size
+shape = df.shape
+size = df.size
+
+# Get column info
+columns = df.columns.tolist()
+info = df.info()
+
+# Check for nulls
+nulls = df.isnull().sum()
+
+# Check for duplicates
+duplicates = df.duplicated().sum()
+
+# Inspect text column for specific artifacts usually found in this dataset
+text_sample = df['text'].head(10).tolist()
+
+print(f"Shape: {shape}")
+print(f"Size: {size}")
+print(f"Columns: {columns}")
+print(f"Nulls:\n{nulls}")
+print(f"Duplicates: {duplicates}")
+print(f"Text Sample: {text_sample}")
+
+
+```
+
+```text
+<class 'pandas.core.frame.DataFrame'>
+RangeIndex: 211225 entries, 0 to 211224
+Data columns (total 31 columns):
+ #   Column                Non-Null Count   Dtype 
+---  ------                --------------   ----- 
+ 0   id                    211225 non-null  object
+ 1   text                  211225 non-null  object
+ 2   example_very_unclear  211225 non-null  bool  
+ 3   admiration            211225 non-null  int64 
+ 4   amusement             211225 non-null  int64 
+ 5   anger                 211225 non-null  int64 
+ 6   annoyance             211225 non-null  int64 
+ 7   approval              211225 non-null  int64 
+ 8   caring                211225 non-null  int64 
+ 9   confusion             211225 non-null  int64 
+ 10  curiosity             211225 non-null  int64 
+ 11  desire                211225 non-null  int64 
+ 12  disappointment        211225 non-null  int64 
+ 13  disapproval           211225 non-null  int64 
+ 14  disgust               211225 non-null  int64 
+ 15  embarrassment         211225 non-null  int64 
+ 16  excitement            211225 non-null  int64 
+ 17  fear                  211225 non-null  int64 
+ 18  gratitude             211225 non-null  int64 
+ 19  grief                 211225 non-null  int64 
+ 20  joy                   211225 non-null  int64 
+ 21  love                  211225 non-null  int64 
+ 22  nervousness           211225 non-null  int64 
+ 23  optimism              211225 non-null  int64 
+ 24  pride                 211225 non-null  int64 
+ 25  realization           211225 non-null  int64 
+ 26  relief                211225 non-null  int64 
+ 27  remorse               211225 non-null  int64 
+ 28  sadness               211225 non-null  int64 
+ 29  surprise              211225 non-null  int64 
+ 30  neutral               211225 non-null  int64 
+dtypes: bool(1), int64(28), object(2)
+memory usage: 48.5+ MB
+Shape: (211225, 31)
+Size: 6547975
+Columns: ['id', 'text', 'example_very_unclear', 'admiration', 'amusement', 'anger', 'annoyance', 'approval', 'caring', 'confusion', 'curiosity', 'desire', 'disappointment', 'disapproval', 'disgust', 'embarrassment', 'excitement', 'fear', 'gratitude', 'grief', 'joy', 'love', 'nervousness', 'optimism', 'pride', 'realization', 'relief', 'remorse', 'sadness', 'surprise', 'neutral']
+Nulls:
+id                      0
+text                    0
+example_very_unclear    0
+admiration              0
+amusement               0
+anger                   0
+annoyance               0
+approval                0
+caring                  0
+confusion               0
+curiosity               0
+desire                  0
+disappointment          0
+disapproval             0
+disgust                 0
+embarrassment           0
+excitement              0
+fear                    0
+gratitude               0
+grief                   0
+joy                     0
+love                    0
+nervousness             0
+optimism                0
+pride                   0
+realization             0
+relief                  0
+remorse                 0
+sadness                 0
+surprise                0
+neutral                 0
+dtype: int64
+Duplicates: 56737
+Text Sample: ['That game hurt.', ' >sexuality shouldn’t be a grouping category It makes you different from othet ppl so imo it fits the definition of "grouping" ', "You do right, if you don't care then fuck 'em!", 'Man I love reddit.', '[NAME] was nowhere near them, he was by the Falcon. ', 'Right? Considering it’s such an important document, I should know the damned thing backwards and forwards... thanks again for the help!', "He isn't as big, but he's still quite popular. I've heard the same thing about his content. Never watched him much.", "That's crazy; I went to a super [RELIGION] high school and I think I can remember 2 girls the entire 4 years that became teen moms.", "that's adorable asf", '"Sponge Blurb Pubs Quaw Haha GURR ha AAa!" finale is too real']
+
+
+```
+
+Here is a detailed breakdown of the **GoEmotions dataset** structure, size, and the cleaning steps required to make it ready for your LSTM/GRU model.
+
+### 1. Dataset Shape & Size
+
+* **Shape:** `(211225, 31)`
+* **Rows:** 211,225 samples (comments).
+* **Columns:** 31 total columns.
+
+
+* **Size:** The dataset contains approximately **6.5 million data points** (cells).
+* **Memory Usage:** It occupies about **48.5 MB** of memory when loaded.
+
+### 2. How Each Column Works
+
+The columns can be divided into three categories: **Metadata**, **Input Text**, and **Target Labels**.
+
+#### A. Metadata & Input
+
+1. **`id`**: A unique string identifier for each Reddit comment (e.g., `eew5j0j`). This is useful for tracking but is **dropped** during training.
+2. **`text`**: The actual input data. This contains the raw Reddit comments (e.g., *"That game hurt."*).
+3. **`example_very_unclear`**: A Boolean (`True`/`False`) flag.
+* **True:** Means annotators disagreed on the emotion or the text was too confusing.
+* **False:** The data is clean and usable.
+* **Action:** You must **filter out** rows where this is `True`.
+
+
+
+#### B. Target Labels (The Emotions)
+
+The remaining **28 columns** represent specific emotions. These are **One-Hot Encoded** (Binary):
+
+* **`1`** = The text contains this emotion.
+* **`0`** = The text does *not* contain this emotion.
+
+**The 28 Emotion Columns are:**
+`admiration`, `amusement`, `anger`, `annoyance`, `approval`, `caring`, `confusion`, `curiosity`, `desire`, `disappointment`, `disapproval`, `disgust`, `embarrassment`, `excitement`, `fear`, `gratitude`, `grief`, `joy`, `love`, `nervousness`, `optimism`, `pride`, `realization`, `relief`, `remorse`, `sadness`, `surprise`, `neutral`.
+
+---
+
+### 3. Data Cleaning (Step-by-Step)
+
+Raw data is rarely ready for Deep Learning. Here is exactly what needs to be cleaned in this dataset:
+
+#### **Step 1: Remove "Unclear" Data**
+
+The dataset includes comments that human annotators couldn't agree on.
+
+* **Code:** `df = df[df['example_very_unclear'] == False]`
+* **Result:** This removes ambiguous noise that would confuse your model.
+
+#### **Step 2: Handle Duplicates**
+
+The dataset contains approximately **56,000 duplicate entries** (e.g., the same comment appearing multiple times).
+
+* **Why:** Duplicates bias the model, making it memorize frequent sentences rather than learning patterns.
+* **Code:** `df = df.drop_duplicates(subset=['text'])`
+
+#### **Step 3: Text Cleaning (Regex)**
+
+The text contains artifacts specific to this dataset that need removal:
+
+* **Masked Entities:** The dataset uses placeholders like `[NAME]` and `[RELIGION]` to protect privacy. These should be removed or treated as standard nouns.
+* **Special Characters:** Emojis, URLs, and punctuation (like `*`, `&`, `$`) add noise.
+* **Case Folding:** Convert everything to lowercase so "Happy" and "happy" are treated as the same word.
+
+#### **Step 4: Label Engineering (Crucial for Accuracy)**
+
+Predicting 28 separate classes is extremely difficult (resulting in ~30-40% accuracy).
+
+* **Strategy:** Group them into **3 Sentiments** (Positive, Negative, Neutral).
+* **Example:** Map `Joy`, `Love`, `Admiration`  **Positive**.
+
+### Summary Table
+
+| Feature | Description | Action Needed |
+| --- | --- | --- |
+| **Rows** | 211,225 | Filter `example_very_unclear == False` |
+| **Input** | `text` column | Clean artifacts (`[NAME]`), lowercasing |
+| **Targets** | 28 Emotion Cols | Group into 3 Sentiment classes |
+| **Missing Values** | None (0 nulls) | No action needed |
+| **Duplicates** | ~56,000 rows | Drop duplicates to prevent bias |
